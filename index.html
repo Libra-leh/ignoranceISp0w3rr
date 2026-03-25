@@ -960,8 +960,6 @@ const FS_COLLECTION = 'library';
     <option value="year-read-asc">Year Read (Oldest)</option>
     <option value="pub-year-desc">Pub. Year (Newest)</option>
     <option value="pub-year-asc">Pub. Year (Oldest)</option>
-    <option value="category">Category A–Z</option>
-    <option value="manual">✋ My Order</option>
   </select>
   <button class="sort-default-btn" id="btnSetSortDefault" onclick="setSortDefault()" title="Set as default sort">⭐</button>
   <button class="filter-btn lang-btn" id="langToggleBtn" onclick="toggleLang()" title="Switch language / Đổi ngôn ngữ">🌐 VI</button>
@@ -1201,6 +1199,7 @@ const FS_COLLECTION = 'library';
     </div>
     <div style="padding:16px 22px 22px">
       <div id="roRevContent"></div>
+      <div id="roRevPinned" style="margin-top:12px;"></div>
       <div id="roRevLinks" style="display:flex;gap:10px;flex-wrap:wrap;margin-top:14px;padding-top:12px;border-top:1px solid var(--warm-light)"></div>
     </div>
   </div>
