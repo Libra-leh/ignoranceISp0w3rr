@@ -993,7 +993,118 @@ const FS_COLLECTION = 'library';
     </button>
   </div>
 </header>
+<!-- Instagram PNG Export — paste before </body> -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script>
+(function() {
+  const GRADIENTS = [
+    "linear-gradient(160deg,#ffecd2,#fcb69f)",
+    "linear-gradient(160deg,#a1c4fd,#c2e9fb)",
+    "linear-gradient(160deg,#d4fc79,#96e6a1)",
+    "linear-gradient(160deg,#fccb90,#d57eeb)",
+    "linear-gradient(160deg,#f5f7fa,#c3cfe2)",
+    "linear-gradient(160deg,#fddb92,#d1fdff)",
+  ];
 
+  function addExportButtons() {
+    document.querySelectorAll('.book-card').forEach(card => {
+      if (card.querySelector('.ig-export-btn')) return;
+      const actions = card.querySelector('.book-actions');
+      if (!actions) return;
+
+      const btn = document.createElement('button');
+      btn.className = 'action-btn ig-export-btn';
+      btn.title = 'Export for Instagram';
+      btn.innerHTML = '📷';
+      btn.style.fontSize = '16px';
+      btn.addEventListener('click', e => { e.stopPropagation(); exportCard(card); });
+      actions.insertBefore(btn, actions.firstChild);
+    });
+  }
+
+  function exportCard(card) {
+    const titleEl  = card.querySelector('.book-title');
+    const authorEl = card.querySelector('.book-author');
+    const imgEl    = card.querySelector('.book-cover img');
+    const ratingEl = card.querySelector('.star-count');
+
+    const title  = titleEl  ? titleEl.textContent.trim()  : 'Book';
+    const author = authorEl ? authorEl.textContent.trim() : '';
+    const rating = ratingEl ? parseFloat(ratingEl.textContent) : 0;
+    const coverSrc = imgEl ? imgEl.src : '';
+
+    const grad = GRADIENTS[title.charCodeAt(0) % GRADIENTS.length];
+    const stars = rating ? ('★'.repeat(Math.round(rating)) + '☆'.repeat(5 - Math.round(rating))) : '';
+
+    // Build off-screen template
+    const wrap = document.createElement('div');
+    wrap.style.cssText = `
+      position:fixed;left:-9999px;top:0;
+      width:540px;height:880px;background:${grad};
+      display:flex;flex-direction:column;align-items:center;
+      justify-content:flex-start;padding:60px 40px 48px;
+      font-family:Georgia,serif;box-sizing:border-box;
+    `;
+
+    const coverBox = document.createElement('div');
+    coverBox.style.cssText = `
+      width:320px;height:460px;border-radius:18px;overflow:hidden;
+      box-shadow:0 16px 48px rgba(0,0,0,.22);flex-shrink:0;
+      background:rgba(255,255,255,.35);display:flex;
+      align-items:center;justify-content:center;
+    `;
+    if (coverSrc) {
+      const img = document.createElement('img');
+      img.crossOrigin = 'anonymous';
+      img.src = coverSrc;
+      img.style.cssText = 'width:100%;height:100%;object-fit:cover;display:block;';
+      coverBox.appendChild(img);
+    } else {
+      coverBox.innerHTML = '<span style="font-size:64px">📖</span>';
+    }
+
+    const textBox = document.createElement('div');
+    textBox.style.cssText = 'margin-top:32px;text-align:center;width:100%;';
+    textBox.innerHTML = `
+      <div style="font-size:30px;font-weight:900;color:#111;line-height:1.2;
+                  letter-spacing:.5px;margin-bottom:10px;text-transform:uppercase;">
+        ${title}
+      </div>
+      <div style="font-size:15px;font-weight:500;color:#444;letter-spacing:2px;
+                  text-transform:uppercase;margin-bottom:20px;">
+        ${author}
+      </div>
+      ${rating > 0 ? `<div style="font-size:20px;color:#222;letter-spacing:2px;">
+        ${stars} &nbsp; ${rating} / 5
+      </div>` : ''}
+    `;
+
+    wrap.appendChild(coverBox);
+    wrap.appendChild(textBox);
+    document.body.appendChild(wrap);
+
+    const doCapture = () => {
+      html2canvas(wrap, { scale:2, useCORS:true, allowTaint:true, backgroundColor:null })
+        .then(canvas => {
+          const a = document.createElement('a');
+          a.download = title.replace(/[^a-z0-9]/gi,'_') + '.png';
+          a.href = canvas.toDataURL('image/png');
+          a.click();
+          document.body.removeChild(wrap);
+        });
+    };
+
+    const img = wrap.querySelector('img');
+    if (img && !img.complete) { img.onload = doCapture; img.onerror = doCapture; }
+    else setTimeout(doCapture, 80);
+  }
+
+  // Run once + watch for new cards rendered dynamically
+  const observer = new MutationObserver(addExportButtons);
+  observer.observe(document.body, { childList:true, subtree:true });
+  addExportButtons();
+})();
+</script>
 <!-- CONTROLS -->
 <div class="controls" id="mainControls" style="display:none">
   <div class="search-wrap">
