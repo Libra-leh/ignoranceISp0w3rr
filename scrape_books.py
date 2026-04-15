@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+ #!/usr/bin/env python3
  """
  BookDNA Fiction Scraper
  =======================
@@ -235,6 +235,4 @@
      # Filter by minimum loved count
      all_books = [b for b in all_books if b["loved_count"] >= min_loved]
      # Final sort
- 
-EOF
-)
+
