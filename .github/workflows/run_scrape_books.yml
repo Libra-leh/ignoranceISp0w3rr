@@ -1,41 +1,46 @@
 name: Run scrape_books
 
-# This determines WHEN the script runs
 on:
   schedule:
-    - cron: '0 0 * * *' # This runs every day at midnight (UTC)
-  workflow_dispatch:      # This allows you to run it manually with a button click
+    - cron: '0 0 * * *'
+  workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
-
     steps:
-      # 1. Pulls your code from the repo onto the GitHub runner
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # 2. Sets up a Python environment
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.9'
 
-      # 3. Installs any libraries (like requests or BeautifulSoup)
       - name: Install dependencies
-        run: |
-          pip install requests beautifulsoup4 
-          # Add any other libraries your scraper needs above
+        run: pip install curl_cffi beautifulsoup4
 
-      # 4. Executes your script
       - name: Run scraper
-        run: python scraper.py
+        env:
+          SCRAPER_API_KEY: ${{ secrets.SCRAPER_API_KEY }}
+        run: python scrape_bookdna.py --pages 3 --pretty
 
-      # 5. Saves the generated .json file back to your repository
+      - name: Guard against empty output
+        run: |
+          python3 -c "
+          import json, sys
+          with open('books.json') as f:
+              books = json.load(f)
+          if len(books) == 0:
+              print('Scraper returned 0 books — aborting commit')
+              sys.exit(1)
+          print(f'OK: {len(books)} books found')
+          "
+
       - name: Commit and push changes
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          git add data.json
-          git commit -m "Auto-update data.json" || exit 0
+          git add books.json
+          git commit -m "Auto-update books.json" || exit 0
           git push
